@@ -70,7 +70,7 @@ export function searchNotes(query: string, notes: NoteWithVector[]): SearchResul
 
   const results = notes
     .map(note => ({
-      note,
+      file: note.file,
       score: cosineSimilarity(queryVector, note.vector),
     }))
     .filter(result => result.score > 0.01) // Filter out very low scores

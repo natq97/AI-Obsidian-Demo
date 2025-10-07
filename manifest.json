@@ -1,0 +1,10 @@
+{
+  "id": "ai-obsidian-demo",
+  "name": "AI Assistant Demo",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "Một trợ lý AI tích hợp trong Obsidian để trò chuyện, tìm kiếm thông tin trong ghi chú và trên web.",
+  "author": "AI Assistant",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}

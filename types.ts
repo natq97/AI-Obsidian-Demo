@@ -1,3 +1,6 @@
+import { TFile } from "obsidian";
+
+// FIX: Add Note interface for standalone app version
 export interface Note {
   id: string;
   title: string;
@@ -8,12 +11,14 @@ export interface Note {
 
 export type Vector = Map<string, number>;
 
-export interface NoteWithVector extends Note {
+export interface NoteWithVector {
+  file: TFile;
+  content: string;
   vector: Vector;
 }
 
 export interface SearchResult {
-  note: Note;
+  file: TFile;
   score: number;
 }
 

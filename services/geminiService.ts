@@ -13,6 +13,9 @@ function getAi(): GoogleGenAI {
   if (!ai) {
     // This adheres to the requirement of using process.env.API_KEY, but defers
     // the call until the AI is actually needed, making the app more robust.
+    if (!process.env.API_KEY) {
+        throw new Error("API_KEY environment variable not set.");
+    }
     ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
   return ai;
@@ -48,8 +51,8 @@ export async function generateRAGResponseStream(
     const formattedContext = context
         .map(
             (result, index) =>
-                `Source ${index + 1} (ID: ${result.note.id}):\nTitle: ${result.note.title
-                }\nContent:\n${result.note.content}`
+                `Source ${index + 1} (File: ${result.file.path}):\nTitle: ${result.file.basename
+                }\nContent is implicitly known by the model`
         )
         .join('\n\n---\n\n');
 
