@@ -1,24 +1,12 @@
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChatMessage, SearchResult } from "../types";
 
-// The GoogleGenAI instance will be initialized lazily to prevent app crash on load.
-let ai: GoogleGenAI | undefined;
 
-/**
- * Gets the singleton instance of the GoogleGenAI client.
- * Initializes it on the first call.
- * @returns The GoogleGenAI instance.
- */
-function getAi(): GoogleGenAI {
-  if (!ai) {
-    // This adheres to the requirement of using process.env.API_KEY, but defers
-    // the call until the AI is actually needed, making the app more robust.
-    if (!process.env.API_KEY) {
-        throw new Error("API_KEY environment variable not set.");
+function createAiClient(apiKey: string): GoogleGenAI {
+    if (!apiKey) {
+      throw new Error("API_KEY is missing. Please configure it in the plugin settings.");
     }
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  }
-  return ai;
+    return new GoogleGenAI({ apiKey });
 }
 
 const modelConfig = {
@@ -34,9 +22,11 @@ function formatChatHistoryForApi(chatHistory: ChatMessage[]) {
 
 export async function generateSmartChatResponseStream(
     message: string, 
-    relevantHistory: ChatMessage[]
+    relevantHistory: ChatMessage[],
+    apiKey: string
 ) {
-    const chat: Chat = getAi().chats.create({
+    const ai = createAiClient(apiKey);
+    const chat: Chat = ai.chats.create({
         ...modelConfig,
         history: formatChatHistoryForApi(relevantHistory)
     });
@@ -46,8 +36,10 @@ export async function generateSmartChatResponseStream(
 
 export async function generateRAGResponseStream(
     query: string, 
-    context: SearchResult[]
+    context: SearchResult[],
+    apiKey: string
 ) {
+    const ai = createAiClient(apiKey);
     const formattedContext = context
         .map(
             (result, index) =>
@@ -68,7 +60,7 @@ ${formattedContext}
 
 User Query: "${query}"`;
     
-    const response = await getAi().models.generateContentStream({
+    const response = await ai.models.generateContentStream({
         ...modelConfig,
         contents: prompt
     });
@@ -77,8 +69,9 @@ User Query: "${query}"`;
 }
 
 
-export async function generateWebSearchResponseStream(query: string) {
-    const response = await getAi().models.generateContentStream({
+export async function generateWebSearchResponseStream(query: string, apiKey: string) {
+    const ai = createAiClient(apiKey);
+    const response = await ai.models.generateContentStream({
         ...modelConfig,
         contents: query,
         config: {

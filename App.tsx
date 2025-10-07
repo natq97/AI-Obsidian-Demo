@@ -20,6 +20,9 @@ const App: React.FC = () => {
   const notesWithVectors = useMemo(() => {
     return notes.map(note => ({
       ...note,
+      // @ts-ignore - HACK: Standalone app does not have TFile, but vectorService expects it.
+      // This is a temporary shim to make it work. A proper fix would involve refactoring vectorService.
+      file: { path: note.id, basename: note.title },
       vector: createTextVector(note.title + ' ' + note.content),
     }));
   }, [notes]);
@@ -85,7 +88,8 @@ const App: React.FC = () => {
       switch (selectedAgent) {
         case 'smart-chat':
           const relevantHistory = searchChatHistory(message, currentChatHistory.slice(0, -1));
-          stream = await generateSmartChatResponseStream(message, relevantHistory);
+          // FIX: Pass the apiKey from environment variables as the third argument.
+          stream = await generateSmartChatResponseStream(message, relevantHistory, process.env.API_KEY!);
           for await (const chunk of stream) {
             modelResponse.content += chunk.text;
             setChatHistory(prev => [...prev.slice(0, -1), { ...modelResponse }]);
@@ -95,7 +99,8 @@ const App: React.FC = () => {
         case 'rag':
           const searchResults = searchNotes(message, notesWithVectors).slice(0, 5);
           modelResponse.sources = searchResults;
-          stream = await generateRAGResponseStream(message, searchResults);
+          // FIX: Pass the apiKey from environment variables as the third argument.
+          stream = await generateRAGResponseStream(message, searchResults, process.env.API_KEY!);
           for await (const chunk of stream) {
             modelResponse.content += chunk.text;
             setChatHistory(prev => [...prev.slice(0, -1), { ...modelResponse }]);
@@ -106,7 +111,8 @@ const App: React.FC = () => {
           // FIX: The result of generateWebSearchResponseStream is an async iterator.
           // Iterate over it directly instead of trying to access a `.stream` property.
           // Grounding metadata will be present on the chunks.
-          const streamResponse = await generateWebSearchResponseStream(message);
+          // FIX: Pass the apiKey from environment variables as the second argument.
+          const streamResponse = await generateWebSearchResponseStream(message, process.env.API_KEY!);
           for await (const chunk of streamResponse) {
               modelResponse.content += chunk.text;
               const groundingMetadata = chunk.candidates?.[0]?.groundingMetadata;
@@ -144,7 +150,7 @@ const App: React.FC = () => {
       case 'chat':
         return (
           <ChatView
-            chatHistory={chatHistory}
+            chatHistory={chatHisto-ry}
             isModelLoading={isModelLoading}
             onSendMessage={handleSendMessage}
             selectedAgent={selectedAgent}

@@ -32,10 +32,14 @@ export class AIAssistantView extends ItemView {
     const container = this.containerEl.children[1];
     container.empty();
     this.root = createRoot(container);
+    // FIX: Replace JSX syntax with React.createElement to avoid parsing errors in a .ts file.
+    // This resolves errors on this line and is expected to fix the related inheritance errors in this file and main.ts.
     this.root.render(
-      <React.StrictMode>
-        <App app={this.app} plugin={this.plugin} />
-      </React.StrictMode>
+      React.createElement(
+        React.StrictMode,
+        null,
+        React.createElement(App, { app: this.app, plugin: this.plugin })
+      )
     );
   }
 

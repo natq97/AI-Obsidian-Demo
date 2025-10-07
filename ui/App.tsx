@@ -9,6 +9,7 @@ import NoteEditor from './components/NoteEditor';
 import ChatView from './components/ChatView';
 import { SparklesIcon } from './components/icons';
 import { useVaultNotes } from './hooks/useVaultNotes';
+import SettingMessage from './components/SettingMessage';
 
 interface AppProps {
   app: ObsidianApp;
@@ -21,7 +22,7 @@ const App: React.FC<AppProps> = ({ app, plugin }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('welcome');
 
   const { settings, saveSettings } = plugin;
-  const { chatHistory, selectedAgent } = settings;
+  const { chatHistory, selectedAgent, apiKey } = settings;
   const [isModelLoading, setIsModelLoading] = useState(false);
   const [notesWithContent, setNotesWithContent] = useState<{ file: TFile, content: string }[]>([]);
 
@@ -56,9 +57,14 @@ const App: React.FC<AppProps> = ({ app, plugin }) => {
   }, [app.vault]);
 
   const handleSelectNote = useCallback((path: string) => {
-    setSelectedNotePath(path);
-    setViewMode('editor');
-  }, []);
+    const file = app.vault.getAbstractFileByPath(path);
+    if(file instanceof TFile) {
+        app.workspace.getLeaf().openFile(file);
+    }
+    // We can also keep the view in the plugin if we want
+    // setSelectedNotePath(path);
+    // setViewMode('editor');
+  }, [app]);
 
   const handleSelectChat = useCallback(() => {
     setSelectedNotePath(null);
@@ -106,6 +112,11 @@ const App: React.FC<AppProps> = ({ app, plugin }) => {
   }
 
   const handleSendMessage = async (message: string) => {
+    if (!apiKey) {
+        alert("Please configure your Google Gemini API key in the plugin settings.");
+        return;
+    }
+
     const userMessage: ChatMessage = { role: 'user', content: message };
     
     const currentChatHistory = [...chatHistory, userMessage];
@@ -132,7 +143,7 @@ const App: React.FC<AppProps> = ({ app, plugin }) => {
       switch (selectedAgent) {
         case 'smart-chat':
           const relevantHistory = searchChatHistory(message, currentChatHistory.slice(0, -1));
-          stream = await generateSmartChatResponseStream(message, relevantHistory);
+          stream = await generateSmartChatResponseStream(message, relevantHistory, apiKey);
           for await (const chunk of stream) {
             updateLastMessage(msg => msg.content += chunk.text);
           }
@@ -141,14 +152,14 @@ const App: React.FC<AppProps> = ({ app, plugin }) => {
         case 'rag':
           const searchResults = searchNotes(message, notesWithVectors).slice(0, 5);
           updateLastMessage(msg => msg.sources = searchResults);
-          stream = await generateRAGResponseStream(message, searchResults);
+          stream = await generateRAGResponseStream(message, searchResults, apiKey);
           for await (const chunk of stream) {
             updateLastMessage(msg => msg.content += chunk.text);
           }
           break;
   
         case 'web-search':
-          const streamResponse = await generateWebSearchResponseStream(message);
+          const streamResponse = await generateWebSearchResponseStream(message, apiKey);
           for await (const chunk of streamResponse) {
               updateLastMessage(msg => {
                 msg.content += chunk.text;
@@ -167,9 +178,12 @@ const App: React.FC<AppProps> = ({ app, plugin }) => {
     } catch (error) {
       console.error("Error generating response:", error);
       setChatHistory(prev => {
-        const lastMessage = prev[prev.length -1];
-        lastMessage.content = "Sorry, I encountered an error. Please check the console for details.";
-        return [...prev.slice(0, -1), lastMessage];
+        const newHistory = [...prev];
+        const lastMessage = newHistory[newHistory.length -1];
+        if (lastMessage) {
+            lastMessage.content = `Sorry, I encountered an error: ${error.message}. Please check the console for details.`;
+        }
+        return newHistory;
       });
     } finally {
       setIsModelLoading(false);
@@ -182,6 +196,11 @@ const App: React.FC<AppProps> = ({ app, plugin }) => {
     return file instanceof TFile ? file : null;
   }, [app.vault, selectedNotePath]);
 
+  const openSettings = () => {
+    (app as any).setting.open();
+    (app as any).setting.openTabById(plugin.manifest.id);
+  };
+
   const renderMainView = () => {
     switch (viewMode) {
       case 'editor':
@@ -193,8 +212,15 @@ const App: React.FC<AppProps> = ({ app, plugin }) => {
             onUpdate={handleUpdateNote}
             onDelete={handleDeleteNote}
           />
-        ) : null;
+        ) : (
+            <div className="flex items-center justify-center h-full text-center text-[#6c7086]">
+                Select a note to edit.
+            </div>
+        );
       case 'chat':
+        if (!apiKey) {
+            return <SettingMessage onOpenSettings={openSettings} />;
+        }
         return (
           <ChatView
             chatHistory={chatHistory}

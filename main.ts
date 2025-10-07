@@ -1,17 +1,17 @@
-import { Plugin } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { AIAssistantView, AI_ASSISTANT_VIEW_TYPE } from './view';
 import { Agent, ChatMessage } from './types';
-// FIX: Removed import of React component to prevent type resolution issues.
-// import { BrainCircuitIcon } from './ui/components/icons';
 
 export interface AIPluginSettings {
   chatHistory: ChatMessage[];
   selectedAgent: Agent;
+  apiKey: string;
 }
 
 const DEFAULT_SETTINGS: AIPluginSettings = {
   chatHistory: [],
   selectedAgent: 'smart-chat',
+  apiKey: '',
 };
 
 export default class AIPlugin extends Plugin {
@@ -24,12 +24,7 @@ export default class AIPlugin extends Plugin {
       AI_ASSISTANT_VIEW_TYPE,
       (leaf) => new AIAssistantView(leaf, this)
     );
-
-    this.addRibbonIcon('brain-circuit', 'Open AI Assistant', () => {
-      this.activateView();
-    });
     
-    // FIX: Add custom icon as an SVG string, not a React component.
     this.addIcon('brain-circuit', `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 <path d="M12 5a3 3 0 1 0-5.993.142"/>
 <path d="M18 5a3 3 0 1 0-5.993.142"/>
@@ -53,6 +48,9 @@ export default class AIPlugin extends Plugin {
 <path d="m6.89 13.56-1.56-.9"/>
 </svg>`);
 
+    this.addRibbonIcon('brain-circuit', 'Open AI Assistant', () => {
+      this.activateView();
+    });
 
     this.addCommand({
       id: 'open-ai-assistant',
@@ -61,6 +59,8 @@ export default class AIPlugin extends Plugin {
         this.activateView();
       },
     });
+
+    this.addSettingTab(new AISettingTab(this.app, this));
   }
 
   onunload() {}
@@ -85,4 +85,34 @@ export default class AIPlugin extends Plugin {
   async saveSettings() {
     await this.saveData(this.settings);
   }
+}
+
+class AISettingTab extends PluginSettingTab {
+	plugin: AIPlugin;
+
+	constructor(app: App, plugin: AIPlugin) {
+		super(app, plugin);
+		this.plugin = plugin;
+	}
+
+	display(): void {
+		const {containerEl} = this;
+
+		containerEl.empty();
+
+		containerEl.createEl('h2', {text: 'AI Assistant Settings'});
+
+		new Setting(containerEl)
+			.setName('Google Gemini API Key')
+			.setDesc(
+                'Enter your API key to use the AI features. You can get a key from Google AI Studio.'
+            )
+			.addText(text => text
+				.setPlaceholder('Enter your API key')
+				.setValue(this.plugin.settings.apiKey)
+				.onChange(async (value) => {
+					this.plugin.settings.apiKey = value.trim();
+					await this.plugin.saveSettings();
+				}));
+	}
 }
