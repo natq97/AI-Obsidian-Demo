@@ -14,18 +14,9 @@ const DEFAULT_SETTINGS: AIPluginSettings = {
   apiKey: '',
 };
 
-export default class AIPlugin extends Plugin {
-  settings: AIPluginSettings;
-
-  async onload() {
-    await this.loadSettings();
-
-    this.registerView(
-      AI_ASSISTANT_VIEW_TYPE,
-      (leaf) => new AIAssistantView(leaf, this)
-    );
-    
-    this.addIcon('brain-circuit', `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+// FIX: Extracted SVG string to a constant to avoid potential parsing issues with JSX in a .ts file.
+// This can resolve inheritance-related type errors.
+const BRAIN_CIRCUIT_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 <path d="M12 5a3 3 0 1 0-5.993.142"/>
 <path d="M18 5a3 3 0 1 0-5.993.142"/>
 <path d="M12 19a3 3 0 1 0 5.993-.142"/>
@@ -46,7 +37,20 @@ export default class AIPlugin extends Plugin {
 <path d="m6.89 10.44-1.56.9"/>
 <path d="m15.55 13.56 1.56-.9"/>
 <path d="m6.89 13.56-1.56-.9"/>
-</svg>`);
+</svg>`;
+
+export default class AIPlugin extends Plugin {
+  settings: AIPluginSettings;
+
+  async onload() {
+    await this.loadSettings();
+
+    this.registerView(
+      AI_ASSISTANT_VIEW_TYPE,
+      (leaf) => new AIAssistantView(leaf, this)
+    );
+    
+    this.addIcon('brain-circuit', BRAIN_CIRCUIT_ICON);
 
     this.addRibbonIcon('brain-circuit', 'Open AI Assistant', () => {
       this.activateView();

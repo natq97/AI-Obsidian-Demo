@@ -84,11 +84,14 @@ const ChatView: React.FC<ChatViewProps> = ({
                         <div className="flex flex-wrap gap-2">
                             {message.sources.map(source => (
                                 <button
-                                 key={source.note.id}
-                                 onClick={() => handleSourceClick(source.note.id)}
+// FIX: Property 'note' does not exist on type 'SearchResult'. Use 'file' instead.
+                                 key={source.file.path}
+// FIX: Property 'note' does not exist on type 'SearchResult'. Use 'file' instead.
+                                 onClick={() => handleSourceClick(source.file.path)}
                                  className="px-2 py-1 bg-[#45475a] text-xs text-[#f5c2e7] rounded hover:bg-[#585b70] transition-colors"
                                 >
-                                    {source.note.title}
+{/* FIX: Property 'note' does not exist on type 'SearchResult'. Use 'file.basename' for the title. */}
+                                    {source.file.basename}
                                 </button>
                             ))}
                         </div>

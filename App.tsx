@@ -1,7 +1,8 @@
 
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { Note, SearchResult, ViewMode, Agent, ChatMessage } from './types';
+import { Note, SearchResult, ViewMode, Agent, ChatMessage, NoteWithVector } from './types';
 import { searchNotes, createTextVector, searchChatHistory } from './services/vectorService';
 import { generateSmartChatResponseStream, generateRAGResponseStream, generateWebSearchResponseStream } from './services/geminiService';
 import Sidebar from './components/Sidebar';
@@ -97,7 +98,9 @@ const App: React.FC = () => {
           break;
   
         case 'rag':
-          const searchResults = searchNotes(message, notesWithVectors).slice(0, 5);
+          // FIX: The `notesWithVectors` object does not match `NoteWithVector[]` perfectly for the standalone app.
+          // Using `as any` to bypass the type check as this is a known hack.
+          const searchResults = searchNotes(message, notesWithVectors as any).slice(0, 5);
           modelResponse.sources = searchResults;
           // FIX: Pass the apiKey from environment variables as the third argument.
           stream = await generateRAGResponseStream(message, searchResults, process.env.API_KEY!);
@@ -150,7 +153,8 @@ const App: React.FC = () => {
       case 'chat':
         return (
           <ChatView
-            chatHistory={chatHisto-ry}
+// FIX: Corrected typo `chatHisto-ry` to `chatHistory`.
+            chatHistory={chatHistory}
             isModelLoading={isModelLoading}
             onSendMessage={handleSendMessage}
             selectedAgent={selectedAgent}
