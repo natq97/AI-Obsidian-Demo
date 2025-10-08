@@ -32,3 +32,17 @@ export interface ChatMessage {
 }
 
 export type ViewMode = 'welcome' | 'editor' | 'chat';
+
+// Fix: Moved AIPluginSettings from main.ts to break circular dependency
+export interface AIPluginSettings {
+  chatHistory: ChatMessage[];
+  selectedAgent: Agent;
+  apiKey: string;
+}
+
+// Fix: Added IAIPlugin interface to break circular dependency
+export interface IAIPlugin {
+  settings: AIPluginSettings;
+  saveSettings(): Promise<void>;
+  manifest: { id: string };
+}

@@ -1,12 +1,7 @@
 import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { AIAssistantView, AI_ASSISTANT_VIEW_TYPE } from './view';
-import { Agent, ChatMessage } from './types';
-
-export interface AIPluginSettings {
-  chatHistory: ChatMessage[];
-  selectedAgent: Agent;
-  apiKey: string;
-}
+// Fix: Import interfaces from types.ts to break circular dependency
+import { Agent, ChatMessage, AIPluginSettings, IAIPlugin } from './types';
 
 const DEFAULT_SETTINGS: AIPluginSettings = {
   chatHistory: [],
@@ -39,7 +34,8 @@ const BRAIN_CIRCUIT_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="24" h
 <path d="m6.89 13.56-1.56-.9"/>
 </svg>`;
 
-export default class AIPlugin extends Plugin {
+// Fix: Implement IAIPlugin to ensure type correctness after breaking circular dependency
+export default class AIPlugin extends Plugin implements IAIPlugin {
   settings: AIPluginSettings;
 
   async onload() {

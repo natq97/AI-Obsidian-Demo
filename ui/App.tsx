@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { App as ObsidianApp, TFile } from 'obsidian';
-import AIPlugin from '../main';
+import type { IAIPlugin } from '../types';
 import { SearchResult, ViewMode, Agent, ChatMessage } from '../types';
 import { searchNotes, createTextVector, searchChatHistory } from '../services/vectorService';
 import { generateSmartChatResponseStream, generateRAGResponseStream, generateWebSearchResponseStream } from '../services/geminiService';
@@ -13,7 +13,7 @@ import SettingMessage from './components/SettingMessage';
 
 interface AppProps {
   app: ObsidianApp;
-  plugin: AIPlugin;
+  plugin: IAIPlugin;
 }
 
 const App: React.FC<AppProps> = ({ app, plugin }) => {

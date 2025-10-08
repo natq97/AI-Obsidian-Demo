@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { Note, SearchResult, ViewMode, Agent, ChatMessage, NoteWithVector } from './types';
@@ -75,6 +76,12 @@ const App: React.FC = () => {
   }, [selectedNoteId, setNotes, notes.length]);
 
   const handleSendMessage = async (message: string) => {
+    const apiKey = import.meta.env.VITE_API_KEY;
+    if (!apiKey) {
+      alert("API Key is not configured. Please create a .env file with VITE_API_KEY.");
+      return;
+    }
+
     const userMessage: ChatMessage = { role: 'user', content: message };
     const currentChatHistory = [...chatHistory, userMessage];
     setChatHistory(currentChatHistory);
@@ -89,8 +96,7 @@ const App: React.FC = () => {
       switch (selectedAgent) {
         case 'smart-chat':
           const relevantHistory = searchChatHistory(message, currentChatHistory.slice(0, -1));
-          // FIX: Pass the apiKey from environment variables as the third argument.
-          stream = await generateSmartChatResponseStream(message, relevantHistory, process.env.API_KEY!);
+          stream = await generateSmartChatResponseStream(message, relevantHistory, apiKey);
           for await (const chunk of stream) {
             modelResponse.content += chunk.text;
             setChatHistory(prev => [...prev.slice(0, -1), { ...modelResponse }]);
@@ -98,12 +104,11 @@ const App: React.FC = () => {
           break;
   
         case 'rag':
-          // FIX: The `notesWithVectors` object does not match `NoteWithVector[]` perfectly for the standalone app.
+          // The `notesWithVectors` object does not match `NoteWithVector[]` perfectly for the standalone app.
           // Using `as any` to bypass the type check as this is a known hack.
           const searchResults = searchNotes(message, notesWithVectors as any).slice(0, 5);
           modelResponse.sources = searchResults;
-          // FIX: Pass the apiKey from environment variables as the third argument.
-          stream = await generateRAGResponseStream(message, searchResults, process.env.API_KEY!);
+          stream = await generateRAGResponseStream(message, searchResults, apiKey);
           for await (const chunk of stream) {
             modelResponse.content += chunk.text;
             setChatHistory(prev => [...prev.slice(0, -1), { ...modelResponse }]);
@@ -111,11 +116,7 @@ const App: React.FC = () => {
           break;
   
         case 'web-search':
-          // FIX: The result of generateWebSearchResponseStream is an async iterator.
-          // Iterate over it directly instead of trying to access a `.stream` property.
-          // Grounding metadata will be present on the chunks.
-          // FIX: Pass the apiKey from environment variables as the second argument.
-          const streamResponse = await generateWebSearchResponseStream(message, process.env.API_KEY!);
+          const streamResponse = await generateWebSearchResponseStream(message, apiKey);
           for await (const chunk of streamResponse) {
               modelResponse.content += chunk.text;
               const groundingMetadata = chunk.candidates?.[0]?.groundingMetadata;
@@ -153,7 +154,6 @@ const App: React.FC = () => {
       case 'chat':
         return (
           <ChatView
-// FIX: Corrected typo `chatHisto-ry` to `chatHistory`.
             chatHistory={chatHistory}
             isModelLoading={isModelLoading}
             onSendMessage={handleSendMessage}

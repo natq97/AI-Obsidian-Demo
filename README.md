@@ -14,7 +14,7 @@ This is a demonstration of an AI-powered note-taking and chat application, inspi
 
 ## Tech Stack
 
-*   **Frontend**: React, TypeScript, Tailwind CSS
+*   **Frontend**: React, TypeScript, Vite, Tailwind CSS
 *   **AI**: Google Gemini API (`@google/genai`)
 *   **Plugin Environment**: Obsidian API
 
@@ -22,20 +22,39 @@ This is a demonstration of an AI-powered note-taking and chat application, inspi
 
 ### Running the Standalone Web App
 
-This application is designed to be run in a web-based development environment where environment variables can be configured.
+This project is configured to run with [Vite](https://vitejs.dev/). You will need [Node.js](https://nodejs.org/) installed.
 
-1.  **API Key**: You need a Google Gemini API key. You can get one from [Google AI Studio](https://aistudio.google.com/app/apikey).
-2.  **Environment Variable**: Set up an environment variable named `API_KEY` with your Gemini API key. The application reads the key from `process.env.API_KEY`.
-3.  Once the environment is set up, the application should run automatically.
+1.  **Clone the Repository**: Download the code to your local machine.
+
+2.  **Install Dependencies**: Open a terminal in the project's root directory and run:
+    ```bash
+    npm install
+    ```
+
+3.  **Set Up API Key**:
+    *   Create a file named `.env` in the root of the project.
+    *   Add your Google Gemini API key to this file. You can get one from [Google AI Studio](https://aistudio.google.com/app/apikey).
+    *   The file content should look like this:
+        ```
+        VITE_API_KEY=YOUR_GEMINI_API_KEY_HERE
+        ```
+
+4.  **Run the Development Server**: To run the app locally, use the command:
+    ```bash
+    npm run dev
+    ```
+    This will start a local server, and you can view the application in your browser at the address provided in the terminal.
+
+5.  **Build for Production**: To create an optimized build for deployment, run:
+    ```bash
+    npm run build
+    ```
+    This will create a `dist` folder containing the final static files.
 
 ### Installing as an Obsidian Plugin
 
-1.  **Build the Plugin**: You will need to build the project first. This typically involves running `npm install` to install dependencies and `npm run build` to compile the TypeScript code into JavaScript.
-2.  **Create Plugin Folder**: In your Obsidian vault, go to the `.obsidian/plugins/` directory and create a new folder named `ai-obsidian-demo`.
-3.  **Copy Files**: Copy the built files (`main.js`, `manifest.json`, `styles.css`) into the `ai-obsidian-demo` folder you just created.
-4.  **Enable Plugin**: Open Obsidian, go to `Settings` > `Community plugins`, and enable the "AI Assistant Demo" plugin.
-5.  **Configure API Key**: Go to the plugin's settings tab (`Settings` > `AI Assistant Demo`) and enter your Google Gemini API key.
+The files for the Obsidian plugin (`main.ts`, `manifest.json`, etc.) are included but are not part of the Vite build process. Building and installing the Obsidian plugin requires a separate build setup (e.g., using `esbuild`), which is not covered by the `npm run build` command in this configuration.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.

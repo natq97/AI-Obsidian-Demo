@@ -3,15 +3,15 @@ import React from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import App from './ui/App';
 // FIX: Use a type-only import to break the circular dependency with main.ts
-import type AIPlugin from './main';
+import type { IAIPlugin } from './types';
 
 export const AI_ASSISTANT_VIEW_TYPE = 'ai-assistant-view';
 
 export class AIAssistantView extends ItemView {
   private root: Root | null = null;
-  private plugin: AIPlugin;
+  private plugin: IAIPlugin;
 
-  constructor(leaf: WorkspaceLeaf, plugin: AIPlugin) {
+  constructor(leaf: WorkspaceLeaf, plugin: IAIPlugin) {
     super(leaf);
     this.plugin = plugin;
   }
